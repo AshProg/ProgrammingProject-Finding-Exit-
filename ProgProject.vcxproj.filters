@@ -45,6 +45,9 @@
     <ClInclude Include="Narrator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Quest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Entity.cpp">

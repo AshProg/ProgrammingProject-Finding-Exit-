@@ -12,20 +12,22 @@ public:
     string message;
     Player* player;
 
-    Narrator();                         // Constructor
-    Narrator(string msg, Player* player);               // Parameterized constructor for nodes
+    Narrator(); 
+    Narrator(string msg, Player* player);
     ~Narrator();
-    void push(string msg);              // Push a new message onto the stack
-    void pop();                         // Pop the top message from the stack
-    string peekThenPop();                // View the top message without removing
+    void push(string msg);
+    void pop();
+    string peekThenPop();
     string get_Next();
-    bool isEmpty() const;               // Check if the stack is empty
+    bool isEmpty() const;
 
     void Introduction();
     void Pause();
     void AfterWakeUp();
     void Hall();
+    void Kitchen(bool potion, bool salt);
     void SeeInventory();
+    void PlayerStatus();
 
 private:
     Node* top;                         

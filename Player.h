@@ -19,21 +19,14 @@ public:
 	Player(string name, bool liveordeath, Inventory* inv);
 	~Player();
 
-	void EntersRoom();
-
 	void ReplenishSanity();
 	void UseSalt();
-	void UsePills();
 	int get_Sanity();
 	void PickUpObject(Objects* obj);
 	int InvAmount();
 	Iterator get_Iterator();
 	Inventory* get_Inv();
 	void RemoveObject();
-	void set_Name(string name)
-	{
-		fName = name;
-	}
 
 	void set_Sanity(int sanity)
 	{

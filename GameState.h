@@ -142,12 +142,78 @@ public:
             {
                 this->SettingName();
             }
+            else if (Keyboard::isKeyPressed(Keyboard::S))
+            {
+                this->SettingsScreen();
+            }
 
             window.clear();
             window.draw(backgroundSprite);
             for (const auto& text : MenuTexts)
                 window.draw(text);
 
+            window.display();
+        }
+    }
+
+    void SettingsScreen()
+    {
+        Text volumeText;
+        volumeText.setFont(font2);
+        volumeText.setCharacterSize(50);
+        volumeText.setFillColor(Color::White);
+        volumeText.setPosition(50, 100);
+
+        int volume = mainMusic.getVolume();
+        Clock keyCooldown; // Clock to handle delay between key presses
+
+        Text instructions;
+        instructions.setFont(font2);
+        instructions.setCharacterSize(30);
+        instructions.setFillColor(Color::White);
+        instructions.setPosition(50, 200);
+        instructions.setString("Use UP and DOWN arrow keys to adjust volume.\nPress ESC to return.");
+
+        while (window.isOpen())
+        {
+            Event event;
+            while (window.pollEvent(event))
+            {
+                if (event.type == Event::Closed)
+                    window.close();
+            }
+
+            if (Keyboard::isKeyPressed(Keyboard::Escape))
+            {
+                return; // Exit the settings screen
+            }
+
+            // Check if the cooldown period has passed before adjusting volume
+            if (keyCooldown.getElapsedTime().asMilliseconds() > 100) // 200 ms delay
+            {
+                if (Keyboard::isKeyPressed(Keyboard::Up) && volume < 100)
+                {
+                    volume += 1;
+                    mainMusic.setVolume(volume);
+                    introMusic.setVolume(volume);
+                    jumpScare.setVolume(volume);
+                    keyCooldown.restart();
+                }
+                else if (Keyboard::isKeyPressed(Keyboard::Down) && volume > 0)
+                {
+                    volume -= 1;
+                    mainMusic.setVolume(volume);
+                    introMusic.setVolume(volume);
+                    jumpScare.setVolume(volume);
+                    keyCooldown.restart();
+                }
+            }
+
+            volumeText.setString("Volume: " + std::to_string(volume));
+
+            window.clear();
+            window.draw(volumeText);
+            window.draw(instructions);
             window.display();
         }
     }
@@ -159,7 +225,7 @@ public:
         nameInput.setFont(font2);        
         nameInput.setCharacterSize(50); 
         nameInput.setFillColor(Color::Red);
-        nameInput.setPosition(0, 100);
+        nameInput.setPosition(0, 70);
 
         Text instruction;
         instruction.setFont(font2);
@@ -206,7 +272,6 @@ public:
         }
     }
 
-
     void IntroScreen()
     {
         introMusic.setLoop(true);
@@ -250,7 +315,7 @@ public:
                 this->PauseScreen();
             }
 
-            if (clock.getElapsedTime().asSeconds() >= 0.5f && linesToShow < gameTexts.size())
+            if (clock.getElapsedTime().asSeconds() >= 1.5f && linesToShow < gameTexts.size())
             {
                 linesToShow++;
                 clock.restart();
@@ -270,16 +335,20 @@ public:
         vector<Text> pausetext;
         Text line;
         line.setFont(font2);
-        line.setCharacterSize(35);
+        line.setCharacterSize(60);
         line.setFillColor(Color::Red);
 
-        int yOffset = 0;
+        line.setString(fNarrator->peekThenPop());
+        line.setPosition(30, 50);
+        pausetext.push_back(line);
+
+        int yOffset = 150;
         while (!fNarrator->isEmpty())
         {
             line.setString(fNarrator->peekThenPop());
-            line.setPosition(40, 50 + yOffset);
+            line.setPosition(350, 50 + yOffset);
             pausetext.push_back(line);
-            yOffset += 50;
+            yOffset += 150;
         }
 
         while (window.isOpen())
@@ -297,6 +366,9 @@ public:
             }
             if (Keyboard::isKeyPressed(Keyboard::M))
             {
+                mainMusic.setLoop(true);
+                mainMusic.play();
+                introMusic.stop();
                 this->MainScreen();
             }
             if (Keyboard::isKeyPressed(Keyboard::Q))
@@ -323,45 +395,13 @@ public:
         line.setFont(font2);
         line.setCharacterSize(35);
         line.setFillColor(Color::White);
-
-        int yOffset = 0;
-        while (!fNarrator->isEmpty())
-        {
-            line.setString(fNarrator->peekThenPop());
-            line.setPosition(40, 50 + yOffset);
-            narrationTexts.push_back(line);
-            yOffset += 50;
-        }
+        UpdateNarrationTexts(narrationTexts, fNarrator, line);
 
         string playerInput = "";
-        Text inputDisplay;
-        inputDisplay.setFont(font2);
-        inputDisplay.setCharacterSize(40);
-        inputDisplay.setFillColor(Color::Green);
-        inputDisplay.setPosition(0, WINDOW_HEIGHT - 50);
+        Text inputDisplay, promptLine, prompt, errorHandler;
+        SetupTextElements(inputDisplay, promptLine, prompt, errorHandler);
 
-        Text promptLine;
-        promptLine.setFont(font2);
-        promptLine.setString("----------------------------------------------------------------------------");
-        promptLine.setCharacterSize(40);
-        promptLine.setFillColor(Color::White);
-        promptLine.setPosition(0, WINDOW_HEIGHT - 150);
-
-        Text prompt;
-        prompt.setFont(font2);
-        prompt.setString("Enter your action " + Player1->get_Name() + " : ");
-        prompt.setCharacterSize(40);
-        prompt.setFillColor(Color::White);
-        prompt.setPosition(0, WINDOW_HEIGHT - 100);
-
-        Text errorHandler;
-        errorHandler.setFont(font2);
-        errorHandler.setCharacterSize(35);
-        errorHandler.setFillColor(Color::White);
-        errorHandler.setPosition(0, WINDOW_HEIGHT - 170);
-
-        bool errorNot = false;
-        int invalidCount = 0; 
+        bool progressed = true;
 
         while (window.isOpen())
         {
@@ -370,65 +410,48 @@ public:
             {
                 if (event.type == Event::Closed)
                     window.close();
+                HandleTextInput(event, playerInput);
 
-                if (event.type == Event::TextEntered)
-                {
-                    if (event.text.unicode == '\b') // Handle backspace
-                    {
-                        if (!playerInput.empty())
-                            playerInput.pop_back();
-                    }
-                    else if (event.text.unicode < 128 && playerInput.length() < 50)
-                    {
-                        playerInput += static_cast<char>(event.text.unicode);
-                    }
-                }
                 if (Keyboard::isKeyPressed(Keyboard::LControl) && Keyboard::isKeyPressed(Keyboard::P))
-                {
                     this->PauseScreen();
-                }
+
                 if (Keyboard::isKeyPressed(Keyboard::Enter))
                 {
                     cout << "Player entered: " << playerInput << endl;
                     if (playerInput == "YES" || playerInput == "yes")
                     {
-                        errorNot = false;
-                        invalidCount = 0;
+                        progressed = false;
                         playerInput = "";
+                        fNarrator->Hall();
+                        UpdateNarrationTexts(narrationTexts, fNarrator, line);
+                        if (playerInput == "Kitchen" || playerInput == "KITCHEN" || playerInput == "kitchen")
+                        {
+                            playerInput = "";
+                        }
                     }
-                    else if (playerInput == "NO" || playerInput == "no")
+                    else if (progressed && (playerInput == "NO" || playerInput == "no"))
                     {
                         this->JumpScareScreen();
                         Player1->set_Sanity(-99);
-                        errorNot = false;
-                        invalidCount = 0;
                         playerInput = "";
                     }
-                    else if (playerInput == "Help" || playerInput == "help")
-                    {
-                        this->HelpScreen(); 
-                        invalidCount = 0; 
-                        playerInput = "";
-                    }
-                    else if (playerInput == "Inventory" || playerInput == "INVENTORY" || playerInput == "inv" || playerInput == "INV")
+                    else if (playerInput == "Inventory" || playerInput == "INVENTORY" || playerInput == "inv" || playerInput == "INV" || playerInput == "Inv")
                     {
                         this->InventoryScreen();
-                        invalidCount = 0;
+                        playerInput = "";
+                    }
+                    else if (playerInput == "Status" || playerInput == "STATUS" || playerInput == "status")
+                    {
+                        this->StatusScreen();
+                        playerInput = "";
+                    }
+                    else if (playerInput == "HELP" || playerInput == "help" || playerInput == "Help")
+                    {
+                        this->HelpScreen();
                         playerInput = "";
                     }
                     else
                     {
-                        errorNot = true;
-                        invalidCount++;
-
-                        if (invalidCount >= 4)
-                        {
-                            errorHandler.setString("Please enter a valid action or type 'Help' to see available commands.");
-                        }
-                        else
-                        {
-                            errorHandler.setString("Please enter the correct action!");
-                        }
                         playerInput = "";
                     }
                 }
@@ -436,19 +459,71 @@ public:
 
             inputDisplay.setString(playerInput);
             window.clear();
+
             for (const auto& text : narrationTexts)
                 window.draw(text);
-
-            if (errorNot)
-            {
-                window.draw(errorHandler);
-            }
 
             window.draw(prompt);
             window.draw(promptLine);
             window.draw(inputDisplay);
+            window.draw(errorHandler);
             window.display();
         }
+    }
+
+    // Helper functions used above for modularity
+
+    void SetupTextElements(Text& inputDisplay, Text& promptLine, Text& prompt, Text& errorHandler) {
+        inputDisplay.setFont(font2);
+        inputDisplay.setCharacterSize(40);
+        inputDisplay.setFillColor(Color::Green);
+        inputDisplay.setPosition(0, WINDOW_HEIGHT - 50);
+
+        promptLine.setFont(font2);
+        promptLine.setString("----------------------------------------------------------------------------");
+        promptLine.setCharacterSize(40);
+        promptLine.setFillColor(Color::White);
+        promptLine.setPosition(0, WINDOW_HEIGHT - 150);
+
+        prompt.setFont(font2);
+        prompt.setString("Enter your action: ");
+        prompt.setCharacterSize(40);
+        prompt.setFillColor(Color::White);
+        prompt.setPosition(0, WINDOW_HEIGHT - 100);
+
+        errorHandler.setFont(font2);
+        errorHandler.setString("Type \"HELP\" for lists of commands!");
+        errorHandler.setCharacterSize(35);
+        errorHandler.setFillColor(Color::White);
+        errorHandler.setPosition(0, WINDOW_HEIGHT - 170);
+    }
+
+    void UpdateNarrationTexts(vector<Text>& narrationTexts, Narrator* narrator, Text& line) {
+        narrationTexts.clear();
+        int yOffset = 0;
+        while (!narrator->isEmpty())
+        {
+            line.setString(narrator->peekThenPop());
+            line.setPosition(10, 50 + yOffset);
+            narrationTexts.push_back(line);
+            yOffset += 50;
+        }
+    }
+
+    void HandleTextInput(const Event& event, string& playerInput) {
+        if (event.type == Event::TextEntered)
+        {
+            if (event.text.unicode == '\b' && !playerInput.empty()) // Handle backspace
+                playerInput.pop_back();
+            else if (event.text.unicode < 128 && playerInput.length() < 50)
+                playerInput += static_cast<char>(event.text.unicode);
+        }
+    }
+
+
+    void MysteriousRoom()
+    {
+
     }
 
     void JumpScareScreen()
@@ -483,11 +558,6 @@ public:
     }
 
     void HelpScreen()
-    {
-
-    }
-
-    void StatusScreen()
     {
 
     }
@@ -535,6 +605,49 @@ public:
         }
     }
 
+    void StatusScreen()
+    {
+        fNarrator->PlayerStatus();
+        fNarrator->push("Press \"Esc\" key to go back..........");
+
+        vector<Text> MenuTexts;
+        Text line;
+        line.setFont(font2);
+        line.setCharacterSize(60);
+        line.setFillColor(Color::White);
+
+        int yOffset = 0;
+
+        while (!fNarrator->isEmpty())
+        {
+            line.setString(fNarrator->peekThenPop());
+            line.setPosition(0, 0 + yOffset);
+            MenuTexts.push_back(line);
+            yOffset += 100;
+        }
+
+        while (window.isOpen())
+        {
+            Event event;
+            while (window.pollEvent(event))
+            {
+                if (event.type == Event::Closed)
+                    window.close();
+            }
+            if (Keyboard::isKeyPressed(Keyboard::Escape))
+            {
+                return;
+            }
+
+            window.clear();
+            for (const auto& text : MenuTexts)
+                window.draw(text);
+
+            window.display();
+        }
+    }
+
+  
     void GameOverScreen()
     {
             

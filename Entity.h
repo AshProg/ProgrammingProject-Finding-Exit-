@@ -14,4 +14,8 @@ public:
 	virtual ~Entity() = default;
 
 	string get_Name() { return fName; }
+	void set_Name(string name)
+	{
+		fName = name;
+	}
 };

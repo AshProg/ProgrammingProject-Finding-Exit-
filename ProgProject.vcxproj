@@ -146,6 +146,7 @@
     <ClInclude Include="Objects.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PurifiedSalt.h" />
+    <ClInclude Include="Quest.h" />
     <ClInclude Include="SanityPotion.h" />
   </ItemGroup>
   <ItemGroup>

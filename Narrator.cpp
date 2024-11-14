@@ -99,11 +99,24 @@ void Narrator::Hall()
     push(">> Room 2");
     push(">> Bathroom");
     push(">> Kitchen");
-    push("What you would do now?");
+    push("");
+    push("What you would do now? (Write your option)");
     push("When you try to open it, it is locked. You need a Key!");
     push("You wander around and saw the entrance door.");
-    push("First is the kitchen, second is the bathroom and third is another room.");
-    push("Outside is the hall where you see there are 3 other rooms.");
+    push("the kitchen, the bathroom and yet another room");
+    push("Outside is the hall where you see there are 3 other rooms,");
+}
+
+void Narrator::Kitchen(bool potion, bool salt)
+{
+    if (potion && salt)
+    {
+        push("On the table ");
+        push("Searching for anything that could be of help");
+        push("You wanders in the kitchen for long");
+        push("In the kitchen you saw everything is a mess!");
+    }
+    
 }
 
 void Narrator::SeeInventory()
@@ -143,4 +156,13 @@ void Narrator::SeeInventory()
     push("Effects: " + fePotion);
     push("Items: Sanity Potion");
 
+}
+
+void Narrator::PlayerStatus()
+{
+    push("Quest: TBA");
+    push("Sanity Level: " + to_string(player->get_Sanity()));
+    push("You need to get out as soon as possible!");
+    push("Description: You are this person!");
+    push("Player's Name: " + player->get_Name());
 }
