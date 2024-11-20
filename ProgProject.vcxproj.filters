@@ -45,7 +45,16 @@
     <ClInclude Include="Narrator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Quest.h">
+    <ClInclude Include="ImageRoom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HiddenRoom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OutwearInv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Outwear.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -63,9 +72,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GameLevel.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SanityIncreaser.h">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="Narrator.cpp">

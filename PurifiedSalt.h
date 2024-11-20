@@ -6,6 +6,6 @@ class PurifiedSalt : public Objects
 private:
 
 public:
-	PurifiedSalt(int amount) : Objects("Stunned the ghost for a while", "Purified Salt", amount)
+	PurifiedSalt() : Objects("Stunned the ghost for a while", "Purified Salt")
 	{}
 };

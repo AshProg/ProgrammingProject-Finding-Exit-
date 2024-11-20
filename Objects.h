@@ -7,11 +7,10 @@ class Objects
 protected:
 	string fEffects;
 	string fObjName;
-	int fAmount;
 
 public:
-	Objects() { fEffects = "", fEffects = "", fAmount = 0; }
-	Objects(string effects, string name, int amount) { fEffects = effects, fObjName = name, fAmount = amount;; }
+	Objects() { fEffects = "", fEffects = "";  }
+	Objects(string effects, string name) { fEffects = effects, fObjName = name; }
 	virtual ~Objects() = default;
 
 	virtual string get_ObjName() { return fObjName; }

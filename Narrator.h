@@ -24,10 +24,17 @@ public:
     void Introduction();
     void Pause();
     void AfterWakeUp();
+
     void Hall();
-    void Kitchen(bool potion, bool salt);
+    void Kitchen(bool potion, bool salt, bool clue1);
+    void Bathroom(bool potion, bool box);
+    void Entrance(bool foundKey);
+    void Room1(bool key, bool firstTime);
+    void Clue1();
+
     void SeeInventory();
     void PlayerStatus();
+    void HelpScreen();
 
 private:
     Node* top;                         

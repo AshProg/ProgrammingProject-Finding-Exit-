@@ -1,91 +1,98 @@
 #include "Player.h"
 
-Player::Player(string name, bool liveordeath, Inventory* inv) : Entity(name, liveordeath) 
+Player::Player(string name, bool liveordeath, Inventory* inv) : Entity(name, liveordeath)
 {
-	fInv = inv;
+    fInv = inv;
 }
 
-void Player::ReplenishSanity()
+bool Player::ReplenishSanity()
 {
     bool potionUsed = false;
-    Inventory* holder = fInv;
 
-    // Iterate through the inventory linked list
-    while (holder != &(Inventory::NIL))
+    // Use InventoryIterator for traversal
+    InventoryIterator it = get_Iterator();
+
+    while (it != it.end())
     {
-        // Try to cast the current object to a SanityPotion
-        SanityPotion* potion = dynamic_cast<SanityPotion*>(holder->get_Object());
+        SanityPotion* potion = dynamic_cast<SanityPotion*>(it.getCurrent()->get_Object());
         if (potion != nullptr)
         {
-            // Replenish sanity by the potion's amount
+            // Replenish sanity and handle overflow
             fSanity += potion->get_ReplenishAmount();
             if (fSanity > 100)
             {
                 fSanity = 100;
             }
             cout << "Sanity replenished by " << potion->get_ReplenishAmount() << " points!" << endl;
-            potionUsed = true;
-            holder->Remove();
+
+            // Remove the used potion and update inventory count
+            Inventory* toDelete = it.getCurrent();
+            ++it; // Advance the iterator before deletion
+            toDelete->Remove();
             fInvAmount -= 1;
-            break;
+
+            potionUsed = true;
+            return true;
         }
         else
         {
-            holder = holder->get_Prev(); // Move to the next item in the inventory
+            ++it; // Move to the next item
         }
     }
 
-    // If no potion was found
     if (!potionUsed)
     {
         cout << "Out of SANITY POTIONS!!" << endl;
     }
+    return potionUsed;
 }
 
-void Player::UseSalt()
+bool Player::UseSalt()
 {
     bool saltUsed = false;
-    Inventory* holder = fInv;
 
-    // Iterate through the inventory linked list
-    while (holder != &(Inventory::NIL))
+    // Use InventoryIterator for traversal
+    InventoryIterator it = get_Iterator();
+
+    while (it != it.end())
     {
-        // Try to cast the current object to a SanityPotion
-        PurifiedSalt* salt = dynamic_cast<PurifiedSalt*>(holder->get_Object());
+        PurifiedSalt* salt = dynamic_cast<PurifiedSalt*>(it.getCurrent()->get_Object());
         if (salt != nullptr)
         {
             cout << "You used Purified Salt on the ghost! It will be stunned for a while!" << endl;
 
-            // Mark the potion as used
-            saltUsed = true;
-            holder->Remove();
+            // Remove the used salt and update inventory count
+            Inventory* toDelete = it.getCurrent();
+            ++it; // Advance the iterator before deletion
+            toDelete->Remove();
             fInvAmount -= 1;
-            break; // Exit the loop after using one potion
+
+            saltUsed = true;
+            return true;
         }
         else
         {
-            holder = holder->get_Prev(); // Move to the next item in the inventory
+            ++it; // Move to the next item
         }
     }
 
-    // If no potion was found
     if (!saltUsed)
     {
         cout << "Out of PURIFIED SALT!!" << endl;
     }
+    return saltUsed;
 }
-
 
 int Player::get_Sanity()
 {
-	return fSanity;
+    return fSanity;
 }
 
 void Player::PickUpObject(Objects* obj)
 {
     fInvAmount += 1;
-	fInv->Add(new Inventory(obj));
-	cout << "Item Successfully added into inventory!\n" << endl;
+    fInv->Add(new Inventory(obj));
+    cout << "Item Successfully added into inventory!\n" << endl;
 }
 
 Inventory* Player::get_Inv()
@@ -103,9 +110,26 @@ InventoryIterator Player::get_Iterator()
     return InventoryIterator(fInv);
 }
 
+void Player::RemoveObject()
+{
+    // Use InventoryIterator for traversal
+    InventoryIterator it = get_Iterator();
+
+    while (it != it.end())
+    {
+        Inventory* toDelete = it.getCurrent();
+        ++it; // Advance the iterator before deletion
+        toDelete->Remove();
+    }
+
+    // Reset inventory-related variables
+    fInvAmount = 0;
+    cout << "Inventory cleared!" << endl;
+}
+
 Player::~Player()
 {
-    Iterator it = get_Iterator();
+    InventoryIterator it = get_Iterator();
     while (it != it.end())
     {
         Inventory* toDelete = it.getCurrent();

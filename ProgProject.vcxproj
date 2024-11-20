@@ -140,13 +140,16 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="GameState.h" />
     <ClInclude Include="Doctor.h" />
+    <ClInclude Include="HiddenRoom.h" />
     <ClInclude Include="Inventory.h" />
     <ClInclude Include="InventoryIterator.h" />
     <ClInclude Include="Narrator.h" />
     <ClInclude Include="Objects.h" />
+    <ClInclude Include="Outwear.h" />
+    <ClInclude Include="OutwearInv.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PurifiedSalt.h" />
-    <ClInclude Include="Quest.h" />
+    <ClInclude Include="ImageRoom.h" />
     <ClInclude Include="SanityPotion.h" />
   </ItemGroup>
   <ItemGroup>
@@ -156,7 +159,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Narrator.cpp" />
     <ClCompile Include="Player.cpp" />
-    <ClCompile Include="SanityIncreaser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -2,6 +2,7 @@
 #include "Entity.h"
 #include "Inventory.h"
 #include "InventoryIterator.h"
+#include "OutwearInv.h"
 #include <string>
 #include <iostream>
 using namespace std;
@@ -10,7 +11,9 @@ class Player : public Entity
 {
 private:
 	int fSanity = 100;
+	int newSanity = 100;
 	Inventory* fInv;
+	OutwearInv* fOutwear;
 	int fInvAmount = 1;
 
 public:
@@ -19,8 +22,8 @@ public:
 	Player(string name, bool liveordeath, Inventory* inv);
 	~Player();
 
-	void ReplenishSanity();
-	void UseSalt();
+	bool ReplenishSanity();
+	bool UseSalt();
 	int get_Sanity();
 	void PickUpObject(Objects* obj);
 	int InvAmount();
@@ -34,6 +37,10 @@ public:
 		if (fSanity < 0)
 		{
 			fSanity = 0;
+		}
+		if (fSanity > newSanity)
+		{
+			fSanity = newSanity;
 		}
 	}
 

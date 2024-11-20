@@ -6,6 +6,7 @@
 #include "Entity.h"
 #include "Inventory.h"
 #include "Narrator.h"
+#include "ImageRoom.h"
 using namespace sf;
 
 const int WINDOW_WIDTH = 1000;
@@ -14,8 +15,22 @@ const int WINDOW_HEIGHT = 800;
 class GameState
 {
 private:
+    // In the kitchen
+    bool potionKitchen, saltKitchen , paperKitchen;
+    bool readPaper1;
+
+    // In the bathroom
+    bool potionBathroom, boxBathroom;
+
+    // In the room
+    bool keyInRoom;
+    bool firstTime;
+    bool thirdTime;
+    int countInRoom;
+
     Inventory* PlayerInv;
     Player* Player1;
+    ImageRoom* imgInv;
     bool mainMenu;
     int optionMenu;
     string fAction;
@@ -25,8 +40,16 @@ private:
     RenderWindow window;
     Texture backgroundTexture;
     Texture jumpScareBG;
+    Texture creepyKitchen;
+    Texture creepyRoom;
+    Texture creepyBathroom;
+    Texture creepyHall;
     Sprite backgroundSprite;
     Sprite jumpScareBGS;
+    Sprite creepyKitchens;
+    Sprite creepyRooms;
+    Sprite creepyBathrooms;
+    Sprite creepyHalls;
     Music mainMusic;   
     Music introMusic;  
     Music jumpScare;
@@ -35,11 +58,9 @@ private:
 public:
     GameState() : window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Finding Exit")
     {
-        SanityPotion* PotionInRoom2 = new SanityPotion(50, 2);
-        Objects* Default = new Objects("Your companion for the journey!", "Baseball Bat", 1);
+        Objects* Default = new Objects("Your companion for the journey!", "Baseball Bat");
         PlayerInv = new Inventory(Default);
-        Player1 = new Player("Steve", true, PlayerInv);
-        Player1->PickUpObject(PotionInRoom2);
+        Player1 = new Player("Default Name", true, PlayerInv);
         fNarrator = new Narrator("Finding Exit", Player1);
         if (!font.loadFromFile("Library/FONT/dksamhain.ttf"))
         {
@@ -51,18 +72,51 @@ public:
             cerr << "Error loading font!" << endl;
         }
 
-        if (!backgroundTexture.loadFromFile("Library/ASSETS/IMAGES/BG2.jpg"))
+        // Background image
+        if (!backgroundTexture.loadFromFile("Library/ASSETS/IMAGES/BG2.png"))
         {
             cerr << "Error loading background image!" << endl;
         }
 
-        if (!jumpScareBG.loadFromFile("Library/ASSETS/IMAGES/BG2.jpg"))
+        if (!jumpScareBG.loadFromFile("Library/ASSETS/IMAGES/JumpScare.png"))
         {
             cerr << "Error loading background image!" << endl;
         }
+
+        if (!creepyKitchen.loadFromFile("Library/ASSETS/IMAGES/CreepyKitchen.png"))
+        {
+            cerr << "Error loading background image!" << endl;
+        }
+
+        if (!creepyBathroom.loadFromFile("Library/ASSETS/IMAGES/CreepyBathroom.png"))
+        {
+            cerr << "Error loading background image!" << endl;
+        }
+
+        if (!creepyRoom.loadFromFile("Library/ASSETS/IMAGES/CreepyRoom.png"))
+        {
+            cerr << "Error loading background image!" << endl;
+        }
+
+        if (!creepyHall.loadFromFile("Library/ASSETS/IMAGES/CreepyHall.png"))
+        {
+            cerr << "Error loading background image!" << endl;
+        }
+
 
         backgroundSprite.setTexture(backgroundTexture);
         jumpScareBGS.setTexture(jumpScareBG);
+        creepyKitchens.setTexture(creepyKitchen);
+        creepyBathrooms.setTexture(creepyBathroom);
+        creepyHalls.setTexture(creepyHall);
+        creepyRooms.setTexture(creepyRoom);
+
+        imgInv = new ImageRoom(backgroundSprite);
+        imgInv->Enqueue(new ImageRoom(jumpScareBGS));
+        imgInv->Enqueue(new ImageRoom(creepyKitchens));
+        imgInv->Enqueue(new ImageRoom(creepyBathrooms));
+        imgInv->Enqueue(new ImageRoom(creepyHalls));
+        imgInv->Enqueue(new ImageRoom(creepyRooms));
 
         if (!mainMusic.openFromFile("Library/ASSETS/SOUNDS/GameScreen.wav"))
         {
@@ -95,6 +149,21 @@ public:
 
     void MainScreen()
     {
+        // Initializing 
+        
+        // In the kitchen
+        potionKitchen = true, saltKitchen = true, paperKitchen = true;
+        readPaper1 = false;
+
+        // In the bathroom
+        potionBathroom = true, boxBathroom = true;
+
+        // In the room
+        keyInRoom = false;
+        firstTime = true;
+        thirdTime = false;
+        countInRoom = 0;
+
         // Start playing main screen music
         mainMusic.setLoop(true); // Loop the music for continuous play
         mainMusic.play();
@@ -148,7 +217,7 @@ public:
             }
 
             window.clear();
-            window.draw(backgroundSprite);
+            window.draw(imgInv->get_Sprite());
             for (const auto& text : MenuTexts)
                 window.draw(text);
 
@@ -366,6 +435,21 @@ public:
             }
             if (Keyboard::isKeyPressed(Keyboard::M))
             {
+                // In the kitchen
+                bool potionKitchen = true, saltKitchen = true, paperKitchen = true;
+                bool readPaper1 = false;
+
+                // In the bathroom
+                bool potionBathroom = true, boxBathroom = true;
+
+                // In the room
+                bool keyInRoom = false;
+                bool firstTime = true;
+                thirdTime = false;
+                countInRoom = 0;
+
+                Player1->RemoveObject();
+                Player1->set_Sanity(100);
                 mainMusic.setLoop(true);
                 mainMusic.play();
                 introMusic.stop();
@@ -401,7 +485,7 @@ public:
         Text inputDisplay, promptLine, prompt, errorHandler;
         SetupTextElements(inputDisplay, promptLine, prompt, errorHandler);
 
-        bool progressed = true;
+        bool hall = false;
 
         while (window.isOpen())
         {
@@ -418,21 +502,34 @@ public:
                 if (Keyboard::isKeyPressed(Keyboard::Enter))
                 {
                     cout << "Player entered: " << playerInput << endl;
-                    if (playerInput == "YES" || playerInput == "yes")
+
+                    // Main input handling logic for navigating between rooms or main options
+                    if (!hall && (playerInput == "YES" || playerInput == "yes"))
                     {
-                        progressed = false;
+                        hall = true;
                         playerInput = "";
                         fNarrator->Hall();
                         UpdateNarrationTexts(narrationTexts, fNarrator, line);
-                        if (playerInput == "Kitchen" || playerInput == "KITCHEN" || playerInput == "kitchen")
-                        {
-                            playerInput = "";
-                        }
                     }
-                    else if (progressed && (playerInput == "NO" || playerInput == "no"))
+                    else if (!hall && (playerInput == "NO" || playerInput == "no"))
                     {
                         this->JumpScareScreen();
                         Player1->set_Sanity(-99);
+                        playerInput = "";
+                    }
+                    else if (hall && (playerInput == "Kitchen" || playerInput == "KITCHEN" || playerInput == "kitchen"))
+                    {
+                        this->Kitchen();
+                        playerInput = "";
+                    }
+                    else if (hall && (playerInput == "Bathroom" || playerInput == "BATHROOM" || playerInput == "bathroom"))
+                    {
+                        this->Bathroom();
+                        playerInput = "";
+                    }
+                    else if (hall && (playerInput == "room 1" || playerInput == "ROOM 1" || playerInput == "Room 1"))
+                    {
+                        this->Room1();
                         playerInput = "";
                     }
                     else if (playerInput == "Inventory" || playerInput == "INVENTORY" || playerInput == "inv" || playerInput == "INV" || playerInput == "Inv")
@@ -460,6 +557,136 @@ public:
             inputDisplay.setString(playerInput);
             window.clear();
 
+            if (!hall)
+            {
+                window.draw(imgInv->get_Sprite());
+            }
+            else
+            {
+                Sprite currentSprite = imgInv->get_Next()->get_Next()->get_Sprite();
+                window.draw(currentSprite);
+            }
+
+            for (const auto& text : narrationTexts)
+                window.draw(text);
+            window.draw(prompt);
+            window.draw(promptLine);
+            window.draw(inputDisplay);
+            window.draw(errorHandler);
+            window.display();
+        }
+    }
+
+
+    void Kitchen()
+    {
+        vector<Text> narrationTexts;
+        Text line;
+        line.setFont(font2);
+        line.setCharacterSize(35);
+        line.setFillColor(Color::White);
+
+        string playerInput = "";
+        Text inputDisplay, promptLine, prompt, errorHandler;
+        SetupTextElements(inputDisplay, promptLine, prompt, errorHandler);
+
+        while (window.isOpen())
+        {
+            Event event;
+            while (window.pollEvent(event))
+            {
+                fNarrator->Kitchen(potionKitchen, saltKitchen, paperKitchen);
+                UpdateNarrationTexts(narrationTexts, fNarrator, line);
+                if (event.type == Event::Closed)
+                    window.close();
+                HandleTextInput(event, playerInput);
+
+                if (Keyboard::isKeyPressed(Keyboard::LControl) && Keyboard::isKeyPressed(Keyboard::P))
+                    this->PauseScreen();
+
+                if (Keyboard::isKeyPressed(Keyboard::Enter))
+                {
+                    cout << "Player entered: " << playerInput << endl;
+
+                    // Handle specific kitchen commands
+                    if (playerInput == "PICK SALT" || playerInput == "pick salt" || playerInput == "Pick Salt")
+                    {
+                        if (saltKitchen)
+                        {
+                            PurifiedSalt* kitchenSalt = new PurifiedSalt();
+                            Player1->PickUpObject(kitchenSalt);
+                            cout << "SALT has been picked up!" << endl;
+                            saltKitchen = false;
+                            playerInput = "";
+                        }
+                        else
+                        {
+                            cout << "NO MORE SALT!" << endl;
+                        }
+                    }
+                    else if (playerInput == "PICK POTION" || playerInput == "pick potion" || playerInput == "Pick Potion")
+                    {
+                        if (potionKitchen)
+                        {
+                            SanityPotion* kitchenPotion = new SanityPotion(50);
+                            Player1->PickUpObject(kitchenPotion);
+                            cout << "POTION has been picked up!" << endl;
+                            potionKitchen = false;
+                            playerInput = "";
+                        }
+                        else
+                        {
+                            cout << "NO MORE POTION!" << endl;
+                        }
+                        
+                    }
+                    else if (playerInput == "PICK PAPER" || playerInput == "pick paper" || playerInput == "Pick Paper")
+                    {
+                        if (paperKitchen)
+                        {
+                            cout << "PAPER has been picked up!";
+                            readPaper1 = true;
+                            paperKitchen = false;
+                            playerInput = "";
+                        }
+                        else
+                        {
+                            cout << "Paper have been taken" << endl;
+                        }
+                    }
+                    else if (playerInput == "BACK" || playerInput == "back")
+                    {
+                        return; 
+
+                    }
+                    else if (playerInput == "Inventory" || playerInput == "INVENTORY" || playerInput == "inv" || playerInput == "INV" || playerInput == "Inv")
+                    {
+                        this->InventoryScreen();
+                        playerInput = "";
+                    }
+                    else if (playerInput == "Status" || playerInput == "STATUS" || playerInput == "status")
+                    {
+                        this->StatusScreen();
+                        playerInput = "";
+                    }
+                    else if (playerInput == "HELP" || playerInput == "help" || playerInput == "Help")
+                    {
+                        this->HelpScreen();
+                        playerInput = "";
+                    }
+                    else
+                    {
+                        playerInput = "";
+                    }
+                }
+            }
+
+            inputDisplay.setString(playerInput);
+            window.clear();
+
+            Sprite currentSprite = imgInv->get_Next()->get_Next()->get_Next()->get_Next()->get_Sprite();
+            window.draw(currentSprite);
+
             for (const auto& text : narrationTexts)
                 window.draw(text);
 
@@ -471,7 +698,208 @@ public:
         }
     }
 
-    // Helper functions used above for modularity
+    void Bathroom()
+    {
+        vector<Text> narrationTexts;
+        Text line;
+        line.setFont(font2);
+        line.setCharacterSize(35);
+        line.setFillColor(Color::White);
+
+        string playerInput = "";
+        Text inputDisplay, promptLine, prompt, errorHandler;
+        SetupTextElements(inputDisplay, promptLine, prompt, errorHandler);
+
+        while (window.isOpen())
+        {
+            Event event;
+            while (window.pollEvent(event))
+            {
+                fNarrator->Bathroom(potionBathroom, boxBathroom);
+                UpdateNarrationTexts(narrationTexts, fNarrator, line);
+
+                if (event.type == Event::Closed)
+                    window.close();
+                HandleTextInput(event, playerInput);
+
+                if (Keyboard::isKeyPressed(Keyboard::LControl) && Keyboard::isKeyPressed(Keyboard::P))
+                    this->PauseScreen();
+
+                if (Keyboard::isKeyPressed(Keyboard::Enter))
+                {
+                    cout << "Player entered: " << playerInput << endl;
+
+                    if (playerInput == "PICK POTION" || playerInput == "pick potion" || playerInput == "Pick Potion")
+                    {
+                        if (potionBathroom)
+                        {
+                            SanityPotion* bathroomPotion = new SanityPotion(50);
+                            Player1->PickUpObject(bathroomPotion);
+                            cout << "POTION has been picked up!" << endl;
+                            potionBathroom = false;
+                            playerInput = "";
+                        }
+                        else
+                        {
+                            cout << "NO MORE POTION!" << endl;
+                        }
+                        
+                    }
+                    else if (playerInput == "OPEN BOX" || playerInput == "open box" || playerInput == "Open Box")
+                    {
+                        if (boxBathroom)
+                        {
+                            Player1->set_Sanity(-50);
+                            cout << "BOX has been opened";
+                            boxBathroom = false;
+                            keyInRoom = true;
+                            playerInput = "";
+                            this->JumpScareScreen();
+                        }   
+                        else
+                        {
+                            cout << "BOX DISAPPEARED!" << endl;
+                        }
+                    }
+                    else if (playerInput == "BACK" || playerInput == "back")
+                    {
+                        return;
+
+                    }
+                    else if (playerInput == "Inventory" || playerInput == "INVENTORY" || playerInput == "inv" || playerInput == "INV" || playerInput == "Inv")
+                    {
+                        this->InventoryScreen();
+                        playerInput = "";
+                    }
+                    else if (playerInput == "Status" || playerInput == "STATUS" || playerInput == "status")
+                    {
+                        this->StatusScreen();
+                        playerInput = "";
+                    }
+                    else if (playerInput == "HELP" || playerInput == "help" || playerInput == "Help")
+                    {
+                        this->HelpScreen();
+                        playerInput = "";
+                    }
+                    else
+                    {
+                        playerInput = "";
+                    }
+                }
+            }
+
+            inputDisplay.setString(playerInput);
+            window.clear();
+
+            Sprite currentSprite = imgInv->get_Next()->get_Next()->get_Next()->get_Sprite();
+            window.draw(currentSprite);
+
+            for (const auto& text : narrationTexts)
+                window.draw(text);
+
+            window.draw(prompt);
+            window.draw(promptLine);
+            window.draw(inputDisplay);
+            window.draw(errorHandler);
+            window.display();
+        }
+    }
+
+    void Room1()
+    {
+        vector<Text> narrationTexts;
+        Text line;
+        line.setFont(font2);
+        line.setCharacterSize(35);
+        line.setFillColor(Color::White);
+
+        string playerInput = "";
+        Text inputDisplay, promptLine, prompt, errorHandler;
+        SetupTextElements(inputDisplay, promptLine, prompt, errorHandler);
+
+        countInRoom++;
+        cout << countInRoom;
+
+        while (window.isOpen())
+        {
+            Event event;
+            while (window.pollEvent(event))
+            {
+                fNarrator->Room1(keyInRoom, firstTime);
+                UpdateNarrationTexts(narrationTexts, fNarrator, line);
+                if (!firstTime)
+                {
+                    line.setFont(font);
+                    line.setCharacterSize(50);
+                    line.setFillColor(Color::Red);
+                }
+                if (event.type == Event::Closed)
+                    window.close();
+                HandleTextInput(event, playerInput);
+
+                if (Keyboard::isKeyPressed(Keyboard::LControl) && Keyboard::isKeyPressed(Keyboard::P))
+                    this->PauseScreen();
+
+                if (Keyboard::isKeyPressed(Keyboard::Enter))
+                {
+                    cout << "Player entered: " << playerInput << endl;
+
+                    if (playerInput == "PICK KEY" || playerInput == "pick key" || playerInput == "Pick Key")
+                    {
+                        if (keyInRoom)
+                        {
+                            keyInRoom = false;
+                            firstTime = false;
+                            line.setFont(font);
+                            line.setCharacterSize(50);
+                            line.setFillColor(Color::Red);
+                            playerInput = "";
+                        }
+
+                    }
+                    else if (playerInput == "BACK" || playerInput == "back")
+                    {
+                        return;
+
+                    }
+                    else if (playerInput == "Inventory" || playerInput == "INVENTORY" || playerInput == "inv" || playerInput == "INV" || playerInput == "Inv")
+                    {
+                        this->InventoryScreen();
+                        playerInput = "";
+                    }
+                    else if (playerInput == "Status" || playerInput == "STATUS" || playerInput == "status")
+                    {
+                        this->StatusScreen();
+                        playerInput = "";
+                    }
+                    else if (playerInput == "HELP" || playerInput == "help" || playerInput == "Help")
+                    {
+                        this->HelpScreen();
+                        playerInput = "";
+                    }
+                    else
+                    {
+                        playerInput = "";
+                    }
+                }
+            }
+
+            inputDisplay.setString(playerInput);
+            window.clear();
+
+            Sprite currentSprite = imgInv->get_Next()->get_Sprite();
+            window.draw(currentSprite);
+
+            for (const auto& text : narrationTexts)
+                window.draw(text);
+
+            window.draw(prompt);
+            window.draw(promptLine);
+            window.draw(inputDisplay);
+            window.draw(errorHandler);
+            window.display();
+        }
+    }
 
     void SetupTextElements(Text& inputDisplay, Text& promptLine, Text& prompt, Text& errorHandler) {
         inputDisplay.setFont(font2);
@@ -559,12 +987,7 @@ public:
 
     void HelpScreen()
     {
-
-    }
-
-    void InventoryScreen()
-    {
-        fNarrator->SeeInventory();
+        fNarrator->HelpScreen();
         fNarrator->push("Press \"Esc\" key to go back..........");
 
         vector<Text> MenuTexts;
@@ -583,7 +1006,6 @@ public:
             yOffset += 50;
         }
 
-        // Main render loop
         while (window.isOpen())
         {
             Event event;
@@ -601,6 +1023,102 @@ public:
             for (const auto& text : MenuTexts)
                 window.draw(text);
 
+            window.display();
+        }
+    }
+
+    void InventoryScreen()
+    {
+
+        vector<Text> MenuTexts;
+        Text line;
+        line.setFont(font2);
+        line.setCharacterSize(30);
+        line.setFillColor(Color::White);
+
+        string playerInput = "";
+        Text inputDisplay, promptLine, prompt, errorHandler;
+        SetupTextElements(inputDisplay, promptLine, prompt, errorHandler);
+
+        // Main render loop
+        while (window.isOpen())
+        {
+            Event event;
+            while (window.pollEvent(event))
+            {
+                fNarrator->SeeInventory();
+                fNarrator->push("Press \"Esc\" key to go back..........");
+
+                int yOffset = 0;
+
+                while (!fNarrator->isEmpty())
+                {
+                    line.setString(fNarrator->peekThenPop());
+                    line.setPosition(0, 0 + yOffset);
+                    MenuTexts.push_back(line);
+                    yOffset += 50;
+                }
+
+                if (event.type == Event::Closed)
+                    window.close();
+                HandleTextInput(event, playerInput);
+
+                if (Keyboard::isKeyPressed(Keyboard::LControl) && Keyboard::isKeyPressed(Keyboard::P))
+                    this->PauseScreen();
+
+                if (Keyboard::isKeyPressed(Keyboard::Escape))
+                {
+                    return;
+                }
+                if (Keyboard::isKeyPressed(Keyboard::Enter))
+                {
+                    cout << "Player entered: " << playerInput << endl;
+
+                    if (playerInput == "use potion" || playerInput == "USE POTION")
+                    {
+                        if (Player1->ReplenishSanity())
+                        {
+                            errorHandler.setString("Increase sanity by 50! Capped at 100");
+                            playerInput = "";
+                            MenuTexts.clear();
+                        }
+                        else
+                        {
+                            errorHandler.setString("Out of Sanity Potion!");
+                            playerInput = "";
+                        }
+                        
+                    }
+                    else if (playerInput == "USE SALT" || playerInput == "use salt")
+                    {
+                        if (Player1->UseSalt())
+                        {
+                            errorHandler.setString("Cannot be seen by the ghost!");
+                            playerInput = "";
+                            MenuTexts.clear();
+                        }
+                        else
+                        {
+                            errorHandler.setString("Out of Purified Salt!");
+                            playerInput = "";
+                        }
+                    }
+                    else
+                    {
+                        playerInput = "";
+                    }
+                }
+            }
+            
+            inputDisplay.setString(playerInput);
+            window.clear();
+            for (const auto& text : MenuTexts)
+                window.draw(text);
+
+            window.draw(prompt);
+            window.draw(promptLine);
+            window.draw(inputDisplay);
+            window.draw(errorHandler);
             window.display();
         }
     }

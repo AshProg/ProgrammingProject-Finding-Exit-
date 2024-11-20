@@ -12,7 +12,7 @@ Narrator::~Narrator()
     {
         Node* temp = currentNode;
         currentNode = currentNode->next;
-        delete temp; // Delete the current node
+        delete temp;
     }
 }
 
@@ -52,7 +52,7 @@ string Narrator::get_Next()
         return "End of stack reached.";
     }
     string message = top->message;
-    top = top->next; // Move to the next node
+    top = top->next; 
     return message;
 }
 
@@ -96,27 +96,199 @@ void Narrator::AfterWakeUp()
 void Narrator::Hall()
 {
     push(">> Entrance");
-    push(">> Room 2");
     push(">> Bathroom");
     push(">> Kitchen");
+    push(">> Room 1");
     push("");
     push("What you would do now? (Write your option)");
     push("When you try to open it, it is locked. You need a Key!");
     push("You wander around and saw the entrance door.");
-    push("the kitchen, the bathroom and yet another room");
-    push("Outside is the hall where you see there are 3 other rooms,");
+    push("the kitchen and the bathroom");
+    push("Outside is the hall. From the hall you can see the 2 rooms, ");
 }
 
-void Narrator::Kitchen(bool potion, bool salt)
+void Narrator::Kitchen(bool potion, bool salt, bool clue1)
 {
-    if (potion && salt)
+    if (potion && salt && clue1)
     {
-        push("On the table ");
+        push(">> Piece of Paper [PAPER]");
+        push(">> Sanity Potion [POTION]");
+        push(">> Purified Salt [SALT]");
+        push("");
+        push("On the table there are some things that you can pick up");
         push("Searching for anything that could be of help");
-        push("You wanders in the kitchen for long");
-        push("In the kitchen you saw everything is a mess!");
+        push("You wanders in the kitchen for a while");
+        push("Everything in the kitchen are very messy!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (!potion && salt && clue1)
+    {
+        push(">> Piece of Paper [PAPER]");
+        push(">> Purified Salt [SALT]");
+        push("");
+        push("On the table there are some things that you can pick up");
+        push("Searching for anything that could be of help");
+        push("You wanders in the kitchen for a while");
+        push("Everything in the kitchen are very messy!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (!potion && !salt && clue1)
+    {
+        push(">> Piece of Paper [PAPER]");
+        push("");
+        push("On the table there are some things that you can pick up");
+        push("Searching for anything that could be of help");
+        push("You wanders in the kitchen for a while");
+        push("Everything in the kitchen are very messy!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (!potion && !salt && !clue1)
+    {
+        push("There are nothing left in the kitchen");
+        push("");
+        push("Searching for anything that could be of help");
+        push("You wanders in the kitchen for a while");
+        push("Everything in the kitchen are very messy!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (potion && !salt && clue1)
+    {
+        push(">> Piece of Paper [PAPER]");
+        push(">> Sanity Potion [POTION]");
+        push("");
+        push("On the table there are some things that you can pick up");
+        push("Searching for anything that could be of help");
+        push("You wanders in the kitchen for a while");
+        push("Everything in the kitchen are very messy!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (potion && !salt && !clue1)
+    {
+        push(">> Sanity Potion [POTION]");
+        push("");
+        push("On the table there are some things that you can pick up");
+        push("Searching for anything that could be of help");
+        push("You wanders in the kitchen for a while");
+        push("Everything in the kitchen are very messy!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (potion && salt && !clue1)
+    {
+        push(">> Sanity Potion [POTION]");
+        push(">> Purified Salt [SALT]");
+        push("");
+        push("On the table there are some things that you can pick up");
+        push("Searching for anything that could be of help");
+        push("You wanders in the kitchen for a while");
+        push("Everything in the kitchen are very messy!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (!potion && salt && !clue1)
+    {
+        push(">> Purified Salt [SALT]");
+        push("");
+        push("On the table there are some things that you can pick up");
+        push("Searching for anything that could be of help");
+        push("You wanders in the kitchen for a while");
+        push("Everything in the kitchen are very messy!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
     }
     
+}
+
+void Narrator::Bathroom(bool potion, bool box)
+{
+    if (potion && box)
+    {
+        push(">> A Box [BOX] (Can only be OPEN)");
+        push(">> Sanity Potion [POTION]");
+        push("");
+        push("Would you pick these items?");
+        push("In the dark, you saw some items");
+        push("There might be another clue you can find in here");
+        push("In the bathroom, you saw blood splatter everywhere!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (!potion && box)
+    {
+        push(">> A Box [BOX]");
+        push("");
+        push("Would you pick this item?");
+        push("In the dark, you an item");
+        push("There might be another clue you can find in here");
+        push("In the bathroom, you saw blood splatter everywhere!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (potion && !box)
+    {
+        push(">> Sanity Potion [POTION]");
+        push("");
+        push("Would you pick this item?");
+        push("In the dark, you an item");
+        push("There might be another clue you can find in here");
+        push("In the bathroom, you saw blood splatter everywhere!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else
+    {
+        push("This bathroom is as empty as cobbler's curse");
+        push("there are nothing for you to take in here.");
+        push("In the bathroom, you saw blood splatter everywhere!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+}
+
+void Narrator::Room1(bool key, bool firstTime)
+{
+    if (key && firstTime)
+    {
+        push(">> Key for the entrance [KEY]");
+        push("");
+        push("You should take it and go out of this place now!");
+        push("It's the key for your freedom!");
+        push("You entered the room from before. From afar you saw something shiny");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (!key && firstTime)
+    {
+        push("Still this room looks veryyyyy creepy");
+        push("There is no way the key would not be here right.");
+        push("Maybe you need to do something first?");
+        push("There is nothing to be seen in this room");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else if (key && !firstTime)
+    {
+        push("and yet here you are still entering this room!");
+        push("There are nothing more you can do inside this room");
+        push("What are you looking for in this room?");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
+    else
+    {
+        push("You must get out as soon as possible!");
+        push("Something jumps over you and scared you.");
+        push("I WILL TAKE OVER YOU IN NO TIME!\"");
+        push("NOTHING IS FREE IN THIS WORLD!");
+        push("\"EVERYTHING COMES FOR A PRICE!");
+        push("");
+        push("Type \"BACK\" to go back to the HALL");
+    }
 }
 
 void Narrator::SeeInventory()
@@ -160,9 +332,22 @@ void Narrator::SeeInventory()
 
 void Narrator::PlayerStatus()
 {
-    push("Quest: TBA");
     push("Sanity Level: " + to_string(player->get_Sanity()));
     push("You need to get out as soon as possible!");
     push("Description: You are this person!");
     push("Player's Name: " + player->get_Name());
+}
+
+void Narrator::HelpScreen()
+{
+    push("4. Press \"Ctrl+P\" to pause the game");
+    push("3. To open an object simply do the same as \"1\" but with \"OPEN\"");
+    push("Example: You want to enter kitchen just type \"KITCHEN\"");
+    push("2. To enter a room just type the room name");
+    push("Simply type \"PICK SALT\" to pick the salt");
+    push("Example: Purification Salt [SALT]");
+    push("Use the short item name which can be seen besides the item name");
+    push("1. To pick an items simply type \"PICK\" followed by item name");
+    push("-----------------------------------------------------------------------------");
+    push("LIST OF COMMANDS");
 }
