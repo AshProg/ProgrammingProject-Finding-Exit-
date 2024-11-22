@@ -137,9 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Entity.h" />
     <ClInclude Include="GameState.h" />
-    <ClInclude Include="Doctor.h" />
     <ClInclude Include="HiddenRoom.h" />
     <ClInclude Include="Inventory.h" />
     <ClInclude Include="InventoryIterator.h" />
@@ -153,12 +151,15 @@
     <ClInclude Include="SanityPotion.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="GameLevel.h" />
+    <ClCompile Include="ImageRoom.cpp" />
     <ClCompile Include="Inventory.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Narrator.cpp" />
+    <ClCompile Include="Objects.cpp" />
+    <ClCompile Include="Outwear.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PurifiedSalt.cpp" />
+    <ClCompile Include="SanityPotion.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

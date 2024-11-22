@@ -9,11 +9,10 @@ protected:
 	string fObjName;
 
 public:
-	Objects() { fEffects = "", fEffects = "";  }
-	Objects(string effects, string name) { fEffects = effects, fObjName = name; }
+	Objects();
+	Objects(string effects, string name);
 	virtual ~Objects() = default;
 
-	virtual string get_ObjName() { return fObjName; }
-	virtual string get_ObjEffects() { return fEffects; }
-
+	string get_ObjName();
+	string get_ObjEffects();
 };

@@ -7,20 +7,8 @@ private:
 	int fSanityAdd;
 
 public:
-	Outwear()
-	{
-		fSanityAdd = 0;
-	}
-
-	Outwear(string name, int sanityAdd) : Objects("Increase you sanity by  substantial amount", name)
-	{
-		fSanityAdd = sanityAdd;
-	}
+	Outwear();
 	
-	~Outwear();
-
-	int get_SanityAddition()
-	{
-		return fSanityAdd;
-	}
+	Outwear(string name, int sanityAdd);
+	int get_SanityAddition();
 };
